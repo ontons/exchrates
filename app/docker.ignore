@@ -1,0 +1,4 @@
+app/logs
+*.env
+.git
+.gitignore

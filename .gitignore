@@ -1,0 +1,13 @@
+# Go build / test artifacts inside app/
+app/*.exe
+app/*.exe~
+app/*.dll
+app/*.so
+app/*.dylib
+app/*.test
+app/__debug_bin*
+app/exchrates
+
+# Env files
+app/.env
+.env

@@ -1,0 +1,42 @@
+services:
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    volumes:
+      - ./volumes/mariadb:/var/lib/mysql
+    ports:
+      - "${DB_PORT:-3306}:${DB_PORT:-3306}"
+    networks:
+      - network
+
+  app:
+    image: golang:1.23
+    restart: unless-stopped
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+    volumes:
+      - ./app:/app
+      - ./logs:/app/logs
+    ports:
+      - "${APP_PORT:-8080}:${APP_PORT:-8080}"
+
+    networks:
+      - network
+    working_dir: /app
+    command: sh -c "go build -o exchrates . && ./exchrates server"
+    depends_on:
+      - mariadb
+
+networks:
+  network:
+    driver: bridge

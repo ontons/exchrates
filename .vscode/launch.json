@@ -1,0 +1,31 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Server",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/app/main.go",
+            "args": ["server"],
+            "envFile": "${workspaceFolder}/.env",
+            "env": {
+                "DB_HOST": "localhost"
+            },
+            "cwd": "${workspaceFolder}/app"
+        },
+        {
+            "name": "Debug Fetch",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/app/main.go",
+            "args": ["fetch"],
+            "envFile": "${workspaceFolder}/.env",
+            "env": {
+                "DB_HOST": "localhost"
+            },
+            "cwd": "${workspaceFolder}/app"
+        }
+    ]
+}
