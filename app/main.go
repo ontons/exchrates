@@ -79,7 +79,10 @@ func main() {
 	defer db.Close()
 
 	provider := provider.NewRSSProvider(config.RSSURL)
-	store := store.NewSqlDB(db)
+	store, err := store.NewSqlDB(db)
+	if err != nil {
+		log.Fatal(err)
+	}
 	svc := service.NewRateService(provider, store)
 
 	cmd := os.Args[1]

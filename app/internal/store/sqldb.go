@@ -9,10 +9,10 @@ type SqlDB struct {
 	db *sql.DB
 }
 
-func NewSqlDB(db *sql.DB) *SqlDB {
+func NewSqlDB(db *sql.DB) (*SqlDB, error) {
 	ret := &SqlDB{db: db}
-	ret.Migrate()
-	return ret
+	err := ret.Migrate()
+	return ret, err
 }
 
 func (s *SqlDB) Migrate() error {
