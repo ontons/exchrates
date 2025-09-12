@@ -16,7 +16,7 @@ services:
       - network
 
   app:
-    image: golang:1.23
+    image: golang:1.24
     restart: unless-stopped
     environment:
       DB_HOST: ${DB_HOST}

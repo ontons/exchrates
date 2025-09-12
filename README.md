@@ -21,6 +21,6 @@ Test assesment
 1. Clone repository `git clone https://github.com/ontons/exchrates.git`
 2. Create .env file in root folder (copy from example.env)
 3. Start db container `sudo docker compose start mariadb`
-4. Navigate to `app` folder
+4. Navigate to `/app` folder
 5. Install dependencies `go mod tidy`
 6. Rund and debug with one of the VSCode launch configs for server or fetch
