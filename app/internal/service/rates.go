@@ -3,17 +3,20 @@ package service
 import (
 	"exchrates/internal/provider"
 	"exchrates/internal/store"
+	"exchrates/pkg/logger"
 )
 
 type RateService struct {
 	provider provider.Provider
 	store    store.Store
+	Logger   *logger.Logger
 }
 
-func NewRateService(provider provider.Provider, store store.Store) *RateService {
+func NewRateService(provider provider.Provider, store store.Store, logger *logger.Logger) *RateService {
 	return &RateService{
 		provider: provider,
 		store:    store,
+		Logger:   logger,
 	}
 }
 

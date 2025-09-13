@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"exchrates/internal/service"
-	"exchrates/pkg/logger"
 	"net/http"
 )
 
@@ -22,13 +21,13 @@ func NewHandler(s *service.RateService) *Handler {
 func (h *Handler) GetLatest(w http.ResponseWriter, r *http.Request) {
 	rates, err := h.svc.GetLatest()
 	if err != nil {
-		logger.Debug(err.Error())
+		h.svc.Logger.Error(err, "Failed to get latest rates")
 		http.Error(w, Error500, http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(rates); err != nil {
-		logger.Debug(err.Error())
+		h.svc.Logger.Error(err, "Failed to encode latest rates")
 		http.Error(w, Error500, http.StatusInternalServerError)
 	}
 }
@@ -42,14 +41,14 @@ func (h *Handler) GetHistory(w http.ResponseWriter, r *http.Request) {
 
 	history, err := h.svc.GetHistory(currency)
 	if err != nil {
-		logger.Debug(err.Error())
+		h.svc.Logger.Error(err, "Failed to get history for currency", "currency", currency)
 		http.Error(w, Error500, http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(history); err != nil {
-		logger.Debug(err.Error())
+		h.svc.Logger.Error(err, "Failed to encode history for currency", "currency", currency)
 		http.Error(w, Error500, http.StatusInternalServerError)
 	}
 }

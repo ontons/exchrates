@@ -68,22 +68,29 @@ func main() {
 	}
 
 	config := NewConfig()
-	logger.InitFile(config.LogFile)
+
+	logFile, err := os.OpenFile(config.LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		log.Fatalf("Failed to open log file: %v", err)
+	}
+
+	customLogger := logger.New(os.Stdout, logFile)
+	customLogger.EnableDebug(true)
 
 	connstr := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", config.DBUser, config.DBPassword, config.DBHost, config.DBPort, config.DBName)
 
 	db, err := sql.Open(config.DBDriver, connstr)
 	if err != nil {
-		log.Fatal(err)
+		customLogger.Fatal(err, "Failed to connect to database")
 	}
 	defer db.Close()
 
 	provider := provider.NewRSSProvider(config.RSSURL)
 	store, err := store.NewSqlDB(db)
 	if err != nil {
-		log.Fatal(err)
+		customLogger.Fatal(err, "Failed to connect to database")
 	}
-	svc := service.NewRateService(provider, store)
+	svc := service.NewRateService(provider, store, customLogger)
 
 	cmd := os.Args[1]
 	switch cmd {
@@ -104,15 +111,14 @@ func runServer(svc *service.RateService, port string) {
 	http.HandleFunc("/latest", handler.GetLatest)
 	http.HandleFunc("/history", handler.GetHistory)
 
-	log.Printf("Listening on %v\n", port)
-	log.Fatal(http.ListenAndServe(port, nil))
+	svc.Logger.Info("Listening on %v\n", port)
+	svc.Logger.Fatal(http.ListenAndServe(port, nil), "Failed to start server")
 }
 
 func runFetch(svc *service.RateService) {
 	err := svc.FetchAndSave()
 	if err != nil {
-		logger.Debug(err.Error())
-		os.Exit(1)
+		svc.Logger.Fatal(err, "Failed to fetch and save rates")
 	}
 	log.Println("Rates fetched and saved.")
 }
