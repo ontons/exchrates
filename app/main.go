@@ -6,6 +6,7 @@ import (
 	"exchrates/internal/provider"
 	"exchrates/internal/service"
 	"exchrates/internal/store"
+	"exchrates/pkg/config"
 	"exchrates/pkg/logger"
 	"fmt"
 	"log"
@@ -19,43 +20,6 @@ const (
 	UsageTxt = `Usage: exchrates [server|fetch]`
 )
 
-type Config struct {
-	DBDriver   string
-	DBUser     string
-	DBPassword string
-	DBName     string
-	DBHost     string
-	DBPort     string
-	RSSURL     string
-	LogFile    string
-	ServerPort string
-}
-
-func NewConfig() *Config {
-	getEnv := func(key, defaultValue string) (value string) {
-		if val, exists := os.LookupEnv(key); exists && val != "" {
-			value = val
-		} else {
-			value = defaultValue
-		}
-		if value == "" {
-			log.Fatalf("missing required environment variable: %s", key)
-		}
-		return value
-	}
-	return &Config{
-		DBDriver:   getEnv("DB_DRIVER", "mysql"),
-		DBUser:     getEnv("DB_USER", ""),
-		DBPassword: getEnv("DB_PASSWORD", ""),
-		DBName:     getEnv("DB_NAME", ""),
-		DBHost:     getEnv("DB_HOST", ""),
-		DBPort:     getEnv("DB_PORT", "3306"),
-		RSSURL:     getEnv("RSS_URL", "https://www.bank.lv/vk/ecb_rss.xml"),
-		LogFile:    getEnv("LOG_FILE", "./logs/log.txt"),
-		ServerPort: getEnv("SERVER_PORT", ":8080"),
-	}
-}
-
 func init() {
 	os.Setenv("TZ", "Europe/Riga")
 }
@@ -67,9 +31,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	config := NewConfig()
+	config := config.NewConfig()
+	// config.LoadEnv() - to load all env vars
+	config.LoadEnvVar("DB_DRIVER", "mysql")
+	config.LoadEnvVar("DB_USER", "")
+	config.LoadEnvVar("DB_PASSWORD", "")
+	config.LoadEnvVar("DB_NAME", "")
+	config.LoadEnvVar("DB_HOST", "")
+	config.LoadEnvVar("DB_PORT", "3306")
+	config.LoadEnvVar("RSS_URL", "https://www.bank.lv/vk/ecb_rss.xml")
+	config.LoadEnvVar("LOG_FILE", "./logs/log.txt")
+	config.LoadEnvVar("SERVER_PORT", ":8080")
 
-	logFile, err := os.OpenFile(config.LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	logFile, err := os.OpenFile(config.MustString("LOG_FILE"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		log.Fatalf("Failed to open log file: %v", err)
 	}
@@ -77,15 +51,20 @@ func main() {
 	customLogger := logger.New(os.Stdout, logFile)
 	customLogger.EnableDebug(true)
 
-	connstr := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", config.DBUser, config.DBPassword, config.DBHost, config.DBPort, config.DBName)
+	connstr := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
+		config.MustString("DB_USER"),
+		config.MustString("DB_PASSWORD"),
+		config.MustString("DB_HOST"),
+		config.MustString("DB_PORT"),
+		config.MustString("DB_NAME"))
 
-	db, err := sql.Open(config.DBDriver, connstr)
+	db, err := sql.Open(config.MustString("DB_DRIVER"), connstr)
 	if err != nil {
 		customLogger.Fatal(err, "Failed to connect to database")
 	}
 	defer db.Close()
 
-	provider := provider.NewRSSProvider(config.RSSURL)
+	provider := provider.NewRSSProvider(config.MustString("RSS_URL"))
 	store, err := store.NewSqlDB(db)
 	if err != nil {
 		customLogger.Fatal(err, "Failed to connect to database")
@@ -95,7 +74,7 @@ func main() {
 	cmd := os.Args[1]
 	switch cmd {
 	case "server":
-		runServer(svc, config.ServerPort)
+		runServer(svc, config.MustString("SERVER_PORT"))
 	case "fetch":
 		runFetch(svc)
 	default:

@@ -21,7 +21,7 @@ services:
 
   app:
     image: golang:1.24
-    restart: unless-stopped
+    restart: on-failure:5
     environment:
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
