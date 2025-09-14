@@ -41,14 +41,14 @@ func (h *Handler) GetHistory(w http.ResponseWriter, r *http.Request) {
 
 	history, err := h.svc.GetHistory(currency)
 	if err != nil {
-		h.svc.Logger.Error(err, "Failed to get history for currency", "currency", currency)
+		h.svc.Logger.Error(err, "Failed to get history for currency %s", currency)
 		http.Error(w, Error500, http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(history); err != nil {
-		h.svc.Logger.Error(err, "Failed to encode history for currency", "currency", currency)
+		h.svc.Logger.Error(err, "Failed to encode history for currency %s", currency)
 		http.Error(w, Error500, http.StatusInternalServerError)
 	}
 }

@@ -120,5 +120,5 @@ func runFetch(svc *service.RateService) {
 	if err != nil {
 		svc.Logger.Fatal(err, "Failed to fetch and save rates")
 	}
-	log.Println("Rates fetched and saved.")
+	svc.Logger.Info("Rates fetched and saved.")
 }
